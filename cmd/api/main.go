@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	internal "github.com/srivishnu-sivan/fleet-service/internal/config"
+)
 
 type CreateVehicleRequest struct {
 	VehicleID   string `json:"vehicle_id" binding:"required"`
@@ -8,9 +11,8 @@ type CreateVehicleRequest struct {
 }
 
 func main() {
-gin.SetMode(gin.DebugMode)
+cfg := internal.Load()
 	router := gin.Default()
-
 	router.GET("/health", func(c *gin.Context) {
 
 		c.JSON(200, gin.H{
@@ -53,6 +55,6 @@ gin.SetMode(gin.DebugMode)
 		})
 	})
 
-	router.Run(":8080")
+	router.Run(":" + cfg.Port)
 
 }
