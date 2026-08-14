@@ -1,0 +1,5 @@
+FROM postgres:18
+ENV POSTGRES_DB=fleet
+ENV POSTGRES_USER=fleet_user
+ENV POSTGRES_PASSWORD=fleet_password
+EXPOSE 5432

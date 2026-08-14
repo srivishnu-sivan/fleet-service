@@ -1,60 +1,32 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"log"
+
+	// "github.com/gin-gonic/gin"
+	"github.com/srivishnu-sivan/fleet-service/internal/app"
 	internal "github.com/srivishnu-sivan/fleet-service/internal/config"
+	"github.com/srivishnu-sivan/fleet-service/internal/database"
 )
 
-type CreateVehicleRequest struct {
-	VehicleID   string `json:"vehicle_id" binding:"required"`
-	Description string `json:"description" binding:"required"`
-}
-
 func main() {
-cfg := internal.Load()
-	router := gin.Default()
-	router.GET("/health", func(c *gin.Context) {
+	cfg := internal.Load()
 
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
+	ctx := context.Background()
 
-	router.GET("/vehicles/:id", func(c *gin.Context) {
+connString :=  "postgres://fleet_user:fleet_password@127.0.0.1:5439/fleet?sslmode=disable"
 
-		c.JSON(200, gin.H{
-			"status":     "ok",
-			"vehicle_id": c.Param("id"),
-		})
-	})
+pool, err := database.NewPostgresPool(ctx, connString)
+if err != nil {
+    log.Fatal(err)
+}
+defer pool.Close()
 
-	router.GET("/vehicle", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":         "ok",
-			"vehicle_id":     c.Query("id"),
-			"page_no":        c.Query("page"),
-			"vehicle_status": c.Query("status"),
-			"limit":          c.Query("limit"),
-		})
-	})
+application := app.New(pool)
 
-	router.POST("/vehicles", func(c *gin.Context) {
-
-		var req CreateVehicleRequest
-
-		if err := c.ShouldBind(&req); err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		c.JSON(200, gin.H{
-			"vehicle_id":  req.VehicleID,
-			"description": req.Description,
-		})
-	})
-
-	router.Run(":" + cfg.Port)
+if err := application.Router.Run(":" + cfg.Port); err != nil {
+    log.Fatal(err)
+}
 
 }

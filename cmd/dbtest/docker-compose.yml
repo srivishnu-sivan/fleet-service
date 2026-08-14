@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: fleet-postgres
+    environment:
+      POSTGRES_DB: fleet
+      POSTGRES_USER: fleet_user
+      POSTGRES_PASSWORD: fleet_password
+    ports:
+      - "5439:5432"
