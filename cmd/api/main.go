@@ -8,6 +8,9 @@ import (
 	"github.com/srivishnu-sivan/fleet-service/internal/app"
 	internal "github.com/srivishnu-sivan/fleet-service/internal/config"
 	"github.com/srivishnu-sivan/fleet-service/internal/database"
+	"github.com/srivishnu-sivan/fleet-service/internal/handler"
+	"github.com/srivishnu-sivan/fleet-service/internal/repository"
+	"github.com/srivishnu-sivan/fleet-service/internal/service"
 )
 
 func main() {
@@ -25,8 +28,18 @@ defer pool.Close()
 
 application := app.New(pool)
 
-if err := application.Router.Run(":" + cfg.Port); err != nil {
-    log.Fatal(err)
-}
+// Dependency chain
+	vehicleRepo := repository.NewVehicleRepository(pool)
+	vehicleService := service.NewVehicleService(vehicleRepo)
+	vehicleHandler := handler.NewVehicleHandler(vehicleService)
+
+	// Routes
+	application.Router.POST("/vehicles", vehicleHandler.CreateVehicle)
+
+	log.Println("Server running on :" + cfg.Port)
+
+	if err := application.Router.Run(":" + cfg.Port); err != nil {
+		log.Fatal(err)
+	}
 
 }
