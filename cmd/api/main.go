@@ -54,7 +54,7 @@ func main() {
 	vehicleHandler := handler.NewVehicleHandler(vehicleService)
 
 	// Routes
-	application.Router.POST("/vehicles", vehicleHandler.CreateVehicle)
+	application.Router.POST("/vehicles", jwtService.AuthMiddleware(), vehicleHandler.CreateVehicle)
 	log.Println("Server running on :" + cfg.Port)
 
 	if err := application.Router.Run(":" + cfg.Port); err != nil {
