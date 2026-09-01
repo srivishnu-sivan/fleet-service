@@ -20,18 +20,18 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 
 func (u *UsersRepository) CreateUsers(ctx context.Context, users domain.RegisterUser) (uuid.UUID, error) {
 
-	query := `INSERT INTO users(email,
-password,
-role_id) VALUES($1,$2,$3) RETURNING id`
-
+	query := `INSERT INTO users (
+	email,
+	password_hash,
+	role_id
+) VALUES ($1, $2, $3) RETURNING id`
 	var id uuid.UUID
 
-	err := u.db.QueryRow(ctx, query, users.Email, users.Password, users.RoleID)
+	err := u.db.QueryRow(ctx, query, users.Email, users.Password, users.RoleID).Scan(&id)
 
 	if err != nil {
 		return uuid.Nil, err
-
 	}
-	return id, nil
 
+	return id, nil
 }

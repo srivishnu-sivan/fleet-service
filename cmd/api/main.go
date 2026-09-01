@@ -36,15 +36,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("token------------->",token)
+	fmt.Println("token------------->", token)
 
 	jwtVerfy, err := jwtService.VerifyToken(token)
 
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("vification : ",jwtVerfy)
+	fmt.Println("vification : ", jwtVerfy)
 
 	application := app.New(pool)
 
@@ -53,6 +53,11 @@ func main() {
 	vehicleService := service.NewVehicleService(vehicleRepo)
 	vehicleHandler := handler.NewVehicleHandler(vehicleService)
 
+	userRepo := repository.NewUsersRepository(pool)
+
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+	application.Router.POST("/register", userHandler.CreateUser)
 	// Routes
 	application.Router.POST("/vehicles", jwtService.AuthMiddleware(), vehicleHandler.CreateVehicle)
 	log.Println("Server running on :" + cfg.Port)
