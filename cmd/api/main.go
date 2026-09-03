@@ -2,17 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
+
 	"log"
 
-	// "github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/srivishnu-sivan/fleet-service/internal/app"
 	"github.com/srivishnu-sivan/fleet-service/internal/auth"
 	internal "github.com/srivishnu-sivan/fleet-service/internal/config"
 	"github.com/srivishnu-sivan/fleet-service/internal/database"
 	"github.com/srivishnu-sivan/fleet-service/internal/handler"
 	"github.com/srivishnu-sivan/fleet-service/internal/repository"
+	"github.com/srivishnu-sivan/fleet-service/internal/routes"
 	"github.com/srivishnu-sivan/fleet-service/internal/service"
 )
 
@@ -31,23 +30,6 @@ func main() {
 
 	jwtService := auth.NewJWTService("my-secret")
 
-	token, err := jwtService.GenerateToken(uuid.New(), 2)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("token------------->", token)
-
-	jwtVerfy, err := jwtService.VerifyToken(token)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("vification : ", jwtVerfy)
-
-	application := app.New(pool)
-
 	// Dependency chain
 	vehicleRepo := repository.NewVehicleRepository(pool)
 	vehicleService := service.NewVehicleService(vehicleRepo)
@@ -57,9 +39,14 @@ func main() {
 
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
-	application.Router.POST("/register", userHandler.CreateUser)
-	// Routes
-	application.Router.POST("/vehicles", jwtService.AuthMiddleware(), vehicleHandler.CreateVehicle)
+	application := app.New(pool)
+
+	routes.Register(
+		application.Router,
+		userHandler,
+		vehicleHandler,
+		jwtService,
+	)
 	log.Println("Server running on :" + cfg.Port)
 
 	if err := application.Router.Run(":" + cfg.Port); err != nil {
